@@ -81,9 +81,3 @@ BEGIN
    VALUES (NEW.idReserva, NOW());
 END $$
 
-
-
-
-
-
-
