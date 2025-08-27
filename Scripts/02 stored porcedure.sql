@@ -1,61 +1,37 @@
-
---Mostrar hoteles con menos de 20 reservas--
+--Saber qué países son los más elegidos nos permite planificar promociones, alianzas con hoteles o guías en esos destinos, o ajustar precios --
 DELIMITER $$
-DROP PROCEDURE sp_HotelesConPocasReservas $$
-CREATE PROCEDURE sp_HotelesConPocasReservas()
+CREATE PROCEDURE paisesMasVisitados()
 BEGIN
-   SELECT h.nombre, COUNT(r.idReserva) AS cantidad_reservas
-   FROM Hotel h
-   LEFT JOIN Reserva r ON h.idHotel = r.idHotel
-   GROUP BY h.idHotel
-   HAVING COUNT(r.idReserva) < 20
-   ORDER BY cantidad_reservas ASC;
+ SELECT D.pais, COUNT(*) AS cantidadReservas
+ FROM Reserva R
+ JOIN Destino D ON R.idDestino = D.idDestino
+ GROUP BY D.pais
+ ORDER BY cantidadReservas DESC;
 END $$
-
-
---Mostrar clientes que no tengan correo con dominio @gmail.com--
+--Listar todas las reservas que tienen estado 'Pendiente  para saber qué clientes aún no confirmaron su viaje o no completaron el pago --
 DELIMITER $$
-DROP PROCEDURE sp_ClientesSinGmail $$
-CREATE PROCEDURE sp_ClientesSinGmail()
+CREATE PROCEDURE reservasPendientes()
 BEGIN
-   SELECT dni, nombre, apellido, Correo
-   FROM Cliente
-   WHERE Correo NOT LIKE '%@gmail.com';
-END $$
-
-
---Mostrar cuántas reservas hay por hotel, con su nombre
-DELIMITER $$
-DROP PROCEDURE sp_ReservasPorHotel $$
-CREATE PROCEDURE sp_ReservasPorHotel()
-BEGIN
-   SELECT h.nombre, COUNT(r.idReserva) AS total_reservas
-   FROM Hotel h
-   LEFT JOIN Reserva r ON h.idHotel = r.idHotel
-   GROUP BY h.idHotel;
+   SELECT R.idReserva, C.nombre, C.apellido, D.nombre AS destino, R.fechaHora
+   FROM Reserva R
+   JOIN Clientes C ON R.dni = C.dni
+   JOIN Destino D ON R.idDestino = D.idDestino
+   WHERE R.Estado = 'Pendiente';
 END $$
 
 
 
---Buscar encargados por apellido parcial--
 
+--Hacer un procedimiento que muestre los destinos más reservados por los clientes y ordenarlo de mayor a menor.
 DELIMITER $$
-DROP PROCEDURE sp_BuscarEncargado $$
-CREATE PROCEDURE sp_BuscarEncargado(IN p_apellido VARCHAR(45))
+CREATE PROCEDURE destinosMasReservados()
 BEGIN
-   SELECT * FROM Encargados
-   WHERE apellido LIKE CONCAT('%', p_apellido, '%');
+   SELECT D.nombre, D.pais, COUNT(*) AS cantidadReservas
+   FROM Reserva R
+   JOIN Destino D ON R.idDestino = D.idDestino
+   GROUP BY D.idDestino, D.nombre, D.pais
+   ORDER BY cantidadReservas DESC;
 END $$
 
 
 
---Mostrar hoteles sin reservas--
-DELIMITER $$
-DROP PROCEDURE sp_HotelesSinReservas $$
-CREATE PROCEDURE sp_HotelesSinReservas()
-BEGIN
-   SELECT h.nombre
-   FROM Hotel h
-   LEFT JOIN Reserva r ON h.idHotel = r.idHotel
-   WHERE r.idReserva IS NULL;
-END $$
